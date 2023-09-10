@@ -1,4 +1,6 @@
-const { Client, IntentsBitField, PermissionsBitField, ChannelType } = require("discord.js");
+const { Client, IntentsBitField, PermissionsBitField, ChannelType, EmbedBuilder } = require("discord.js");
+const fs = require("fs");
+const { getOnboardingConfirmation, welcomeMessage } = require("./constants");
 require("dotenv").config();
 
 const client = new Client({
@@ -73,6 +75,7 @@ client.on("messageCreate", async (message) => {
                         `Hello ${message.author},\n\nIn less than 1 minute, you will have full access to this server. So, let's get started! Here's the first question:\n\nWhat's your full name?`
                     );
 
+
                     message.reply(`${username}, please check the Welcome channel created for you!`);
 
                     tempChannelObj[authorId] = tempChannel.id;
@@ -91,17 +94,13 @@ client.on("messageCreate", async (message) => {
 
                         // Ask for the email address
                         await tempChannel.send(
-                            `Great, hi ${fullName}!\n\nI've changed your nickname on this server to ${firstName}. You can change it back if you'd like.\n\nWhat's your email address?`
+                            `Great, hi \`${fullName}\`!\n\nWhat's your email address?`
                         );
 
                         collector.stop();
 
-                        console.log("A")
-
                         // Await the email response
                         const emailResponse = await tempChannel.awaitMessages({ filter, max: 1 });
-
-                        console.log(emailResponse, "B")
 
                         if (emailResponse.size === 1) {
                             const email = emailResponse.first().content;
@@ -111,19 +110,40 @@ client.on("messageCreate", async (message) => {
                             if (emailRegex.test(email)) {
                                 // User provided a valid email
                                 await tempChannel.send(
-                                    `Thank you for providing your email address, ${message.author}! Your onboarding is complete.`
+                                    `Great! \nHere are your answers:\nFull Name: ${fullName}\nEmail: ${email}\n\nIf everything's correct, simply reply "yes"`
                                 );
-                                // Assign the "member" role
-                                const memberRole = message.guild.roles.cache.find((role) => role.name === 'Member');
 
-                                message.guild.roles.cache.forEach(role => {
-                                    console.log(role.name, "role name")
-                                })
-                                if (memberRole) {
-                                    message.member.roles.add(memberRole);
+
+                                const isConfirmed = await tempChannel.awaitMessages({filter, max: 1});
+                                console.log(isConfirmed, "isConfirmed")
+
+                                if(isConfirmed.first().content.toLowerCase().includes("yes")) {
+
+                                    await tempChannel.send(getOnboardingConfirmation(email))
+
+                                    const embed = new EmbedBuilder()
+                                    .setColor('#0099ff')
+                                    .setTitle(`Let's goo`)
+                                    .setImage('https://media.tenor.com/irHN4NnCyOwAAAAC/the-office-yeah.gif') // Replace with the URL of your GIF
+                
+                                    // Send the MessageEmbed with the GIF
+                                    await tempChannel.send({ embeds: [embed] });
+
+                                    await tempChannel.send(welcomeMessage)
+
+                                    // Assign the "member" role
+                                    const memberRole = message.guild.roles.cache.find((role) => role.name === 'Member');
+    
+                                    message.guild.roles.cache.forEach(role => {
+                                        console.log(role.name, "role name")
+                                    })
+                                    if (memberRole) {
+                                        message.member.roles.add(memberRole);
+                                    }
+
+                                } else {
+                                    console.log("User needs to edit it flow")
                                 }
-
-                                // Mark the user as onboarded to prevent future creations
                             }
                         }
                     }
@@ -144,21 +164,21 @@ client.on("messageCreate", async (message) => {
 client.on('guildMemberAdd', (member) => {
     // Get the role by name
     const roleToAdd = member.guild.roles.cache.find((r) => r.name === roleName);
-  
+
     if (roleToAdd) {
-      // Create an array containing only the role you want to assign
-      const newRolesArray = [roleToAdd];
-  
-      // Set the member's roles to the new array
-      member.roles.set(newRolesArray)
-        .then(() => {
-          console.log(`Assigned the "${roleName}" role to ${member.user.tag}`);
-        })
-        .catch(console.error);
+        // Create an array containing only the role you want to assign
+        const newRolesArray = [roleToAdd];
+
+        // Set the member's roles to the new array
+        member.roles.set(newRolesArray)
+            .then(() => {
+                console.log(`Assigned the "${roleName}" role to ${member.user.tag}`);
+            })
+            .catch(console.error);
     } else {
-      console.log(`The role "${roleName}" does not exist in this server.`);
+        console.log(`The role "${roleName}" does not exist in this server.`);
     }
-  });
+});
 
 
 client.login(process.env.DISCORD_TOKEN)
