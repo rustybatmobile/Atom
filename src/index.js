@@ -91,7 +91,7 @@ client.on("messageCreate", async (message) => {
 
                         // Ask for the email address
                         await tempChannel.send(
-                            `Great, hi ${message.author}!\n\nI've changed your nickname on this server to ${firstName}. You can change it back if you'd like.\n\nWhat's your email address?`
+                            `Great, hi ${fullName}!\n\nI've changed your nickname on this server to ${firstName}. You can change it back if you'd like.\n\nWhat's your email address?`
                         );
 
                         collector.stop();
@@ -140,6 +140,25 @@ client.on("messageCreate", async (message) => {
         }
     }
 })
+
+client.on('guildMemberAdd', (member) => {
+    // Get the role by name
+    const roleToAdd = member.guild.roles.cache.find((r) => r.name === roleName);
+  
+    if (roleToAdd) {
+      // Create an array containing only the role you want to assign
+      const newRolesArray = [roleToAdd];
+  
+      // Set the member's roles to the new array
+      member.roles.set(newRolesArray)
+        .then(() => {
+          console.log(`Assigned the "${roleName}" role to ${member.user.tag}`);
+        })
+        .catch(console.error);
+    } else {
+      console.log(`The role "${roleName}" does not exist in this server.`);
+    }
+  });
 
 
 client.login(process.env.DISCORD_TOKEN)
