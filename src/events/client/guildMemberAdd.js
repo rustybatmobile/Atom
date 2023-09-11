@@ -2,10 +2,20 @@ require("dotenv").config();
 
 
 module.exports = {
-    name: 'ready',  //name for the event
+    name: 'guildMemberAdd',  
     async execute(client) {
 
-        const {GUILD_ID: guildId, UNVERIFIED_MEMBER_ROLE_ID: roleId} = process.env;
+        const {GUILD_ID: guildId, UNVERIFIED_MEMBER_ROLE_ID: roleId, ONBOARDING_CHANNEL_ID} = process.env;
+        const welcomeChannel = client.channels.cache.get(ONBOARDING_CHANNEL_ID);
+
+        if (welcomeChannel) {
+            try {
+                // Send the welcome message
+                await welcomeChannel.send(`Welcome to the server! Please type \`?verify\` to get started.`);
+            } catch (error) {
+                console.error("Error sending welcome message:", error);
+            }
+        }
 
         const guild = client.guilds.cache.get(guildId);
         const role = guild.roles.cache.get(roleId);

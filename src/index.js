@@ -1,8 +1,8 @@
 const { Client, Collection, GatewayIntentBits } = require("discord.js");
+require("dotenv").config();
 const { DISCORD_TOKEN } = process.env;
 const fs = require("fs");
 const { connect } = require("mongoose");
-require("dotenv").config();
 
 
 const client = new Client({
