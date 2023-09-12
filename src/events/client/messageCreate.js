@@ -11,7 +11,7 @@ module.exports = {
         const { channelId, content, author } = message;
         const { id: authorId, bot, username } = author;
 
-        const { ONBOARDING_CHANNEL_ID } = process.env;
+        const { ONBOARDING_CHANNEL_ID, MOD_CHANNEL_ID, GUILD_ID, SERVER_TOUR_CHANNEL_ID } = process.env;
 
 
         if (!bot) {
@@ -62,15 +62,44 @@ module.exports = {
                         message.reply("Please type `?verify`")
                     }
                 }
+            } else if(content === "!generate-invites-nucleus" && channelId === MOD_CHANNEL_ID) {
+                const guild = client.guilds.cache.get(GUILD_ID)
+                const serverTourChannel = guild.channels.cache.get(SERVER_TOUR_CHANNEL_ID)
+                const modChannel = guild.channels.cache.get(MOD_CHANNEL_ID);
+                // Loop to create invite links
+                
+                const inviteLinksString = await generateLinks(serverTourChannel);
+                
+                modChannel.send(inviteLinksString)
             } 
         }
     }
 }
 
+
+async function generateLinks(serverTourChannel) {
+
+    let inviteLinks = '';
+
+    return new Promise(async (resolve, reject) => {
+        for (let i = 0; i < 10; i++) {
+            const invite = await serverTourChannel.createInvite({
+            maxAge: 0,
+            maxUses: 1,
+            unique: true,
+            temporary: false, 
+            });
+    
+            inviteLinks = inviteLinks.concat(`\n${invite.url}`)
+        }
+        resolve(inviteLinks);
+    }) 
+}
+
 // Helper functions for better organization
 async function confirmData(tempChannel, message, fullName, email) {
     await tempChannel.send(
-        `Great! \nHere are your answers:\nFull Name: ${fullName}\nEmail: ${email}\n\nIf everything's correct, simply reply "yes"`
+        `Great! \nHere are your answers:\nFull Name: ${fullName}\nEmail: ${email}\n\nIf everything's correct, simply reply \`yes\`\nIf you wish to restart, type \`no\``
     );
 
     const filter = (response) => response.author.id === message.author.id;

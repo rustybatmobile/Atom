@@ -3,12 +3,23 @@ require("dotenv").config();
 
 module.exports = {
     name: 'guildMemberAdd',  
-    async execute(client) {
+    async execute(member, client) {
+
 
         const {GUILD_ID: guildId, UNVERIFIED_MEMBER_ROLE_ID: roleId, ONBOARDING_CHANNEL_ID} = process.env;
         const welcomeChannel = client.channels.cache.get(ONBOARDING_CHANNEL_ID);
 
-        if (welcomeChannel) {
+        //COMPLETELY FREE
+        if(true) {
+            freeMemberServerAddFlow(welcomeChannel, roleId, guildId, client);
+        }
+      
+    }
+}
+
+
+async function freeMemberServerAddFlow(welcomeChannel, roleId, guildId, client) {
+  if (welcomeChannel) {
             try {
                 // Send the welcome message
                 await welcomeChannel.send(`Welcome to the server! Please type \`?verify\` to get started.`);
@@ -34,5 +45,4 @@ module.exports = {
         } else {
             console.log(`The role "${roleName}" does not exist in this server.`);
         }
-    }
 }
